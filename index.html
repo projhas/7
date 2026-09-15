@@ -1,0 +1,4716 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>حِلقة</title>
+
+  <meta name="theme-color" content="#09090b">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #08080a;
+      --card: #111114;
+      --card2: #17171b;
+      --border: #27272d;
+      --text: #f5f5f5;
+      --muted: #96969f;
+      --primary: #8b5cf6;
+      --primary2: #a78bfa;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #f59e0b;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at top right, rgba(139,92,246,.10), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font-family: Arial, Tahoma, sans-serif;
+      min-height: 100vh;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* =========================
+       AUTH
+    ========================= */
+
+    #authGate {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-box {
+      width: 100%;
+      max-width: 430px;
+      background: rgba(17,17,20,.94);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: 0 25px 80px rgba(0,0,0,.4);
+    }
+
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .auth-logo .logo-circle {
+      width: 70px;
+      height: 70px;
+      border-radius: 22px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #8b5cf6, #5b21b6);
+      font-size: 30px;
+      font-weight: bold;
+      box-shadow: 0 10px 35px rgba(139,92,246,.25);
+    }
+
+    .auth-logo h1 {
+      margin-top: 14px;
+      font-size: 28px;
+    }
+
+    .auth-logo p {
+      color: var(--muted);
+      margin-top: 7px;
+      font-size: 14px;
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+    }
+
+    .field-label {
+      color: #ddd;
+      font-size: 13px;
+      margin-bottom: -5px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      background: #0c0c0f;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 13px 14px;
+      outline: none;
+      transition: .2s;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(139,92,246,.10);
+    }
+
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+    }
+
+    .primary-btn {
+      border: 0;
+      color: white;
+      padding: 13px 18px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      font-weight: bold;
+      transition: .2s;
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .secondary-btn {
+      background: var(--card2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      border-radius: 13px;
+    }
+
+    .danger-btn {
+      background: rgba(239,68,68,.10);
+      color: #f87171;
+      border: 1px solid rgba(239,68,68,.25);
+      padding: 10px 14px;
+      border-radius: 12px;
+    }
+
+    .auth-switch {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 18px;
+    }
+
+    .auth-switch button {
+      background: none;
+      border: 0;
+      color: var(--primary2);
+      font-weight: bold;
+    }
+
+    .message {
+      border-radius: 12px;
+      padding: 11px 13px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .message.error {
+      background: rgba(239,68,68,.10);
+      border: 1px solid rgba(239,68,68,.25);
+      color: #fca5a5;
+    }
+
+    .message.success {
+      background: rgba(34,197,94,.10);
+      border: 1px solid rgba(34,197,94,.25);
+      color: #86efac;
+    }
+
+    .username-hint {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    /* =========================
+       APP HEADER
+    ========================= */
+
+    #appShell {
+      min-height: 100vh;
+      padding-bottom: 82px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(8,8,10,.88);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-inner {
+      width: 100%;
+      max-width: 760px;
+      margin: auto;
+      min-height: 65px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 39px;
+      height: 39px;
+      border-radius: 13px;
+      background: linear-gradient(135deg,#8b5cf6,#5b21b6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .brand-name {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .icon-btn {
+      width: 41px;
+      height: 41px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .icon-btn:hover {
+      border-color: #44444d;
+      background: var(--card2);
+    }
+
+    .badge {
+      position: absolute;
+      top: -5px;
+      left: -4px;
+      min-width: 19px;
+      height: 19px;
+      border-radius: 20px;
+      padding: 0 5px;
+      background: #ef4444;
+      color: white;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--bg);
+    }
+
+    /* =========================
+       MAIN
+    ========================= */
+
+    main {
+      width: 100%;
+      max-width: 760px;
+      margin: auto;
+      padding: 18px 15px 25px;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    /* =========================
+       SPECIALIZATION
+    ========================= */
+
+    .specialization-box {
+      width: 100%;
+      min-height: 150px;
+      border: 1px solid rgba(139,92,246,.30);
+      background:
+        radial-gradient(circle at top left, rgba(167,139,250,.20), transparent 45%),
+        linear-gradient(145deg,#15121d,#0f0f13);
+      border-radius: 25px;
+      padding: 28px;
+      margin-bottom: 17px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .specialization-box::after {
+      content: "حِلقة";
+      position: absolute;
+      left: -10px;
+      bottom: -35px;
+      font-size: 90px;
+      font-weight: bold;
+      color: rgba(255,255,255,.025);
+    }
+
+    .spec-small {
+      color: var(--primary2);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .spec-title {
+      font-size: clamp(28px,7vw,48px);
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .spec-desc {
+      color: var(--muted);
+      margin-top: 10px;
+      font-size: 13px;
+    }
+
+    /* =========================
+       TABS
+    ========================= */
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab {
+      flex: 1;
+      min-width: 100px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      padding: 11px;
+      border-radius: 13px;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      color: white;
+      background: rgba(139,92,246,.14);
+      border-color: rgba(139,92,246,.45);
+    }
+
+    /* =========================
+       POSTS
+    ========================= */
+
+    .post-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .post-card {
+      background: rgba(17,17,20,.90);
+      border: 1px solid var(--border);
+      border-radius: 19px;
+      padding: 17px;
+      transition: .2s;
+      cursor: pointer;
+    }
+
+    .post-card:hover {
+      border-color: #3b3b44;
+      transform: translateY(-1px);
+    }
+
+    .post-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .post-title {
+      font-size: 17px;
+      line-height: 1.5;
+      font-weight: bold;
+    }
+
+    .post-body-preview {
+      color: #b7b7bf;
+      font-size: 13px;
+      line-height: 1.7;
+      margin-top: 7px;
+      white-space: pre-line;
+    }
+
+    .post-meta {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 13px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .scope-badge,
+    .role-badge,
+    .solved-badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 20px;
+      padding: 5px 9px;
+      font-size: 10px;
+    }
+
+    .scope-badge {
+      background: rgba(139,92,246,.12);
+      color: #c4b5fd;
+      border: 1px solid rgba(139,92,246,.2);
+    }
+
+    .role-badge {
+      background: rgba(255,255,255,.05);
+      color: #d4d4d8;
+      border: 1px solid var(--border);
+    }
+
+    .solved-badge {
+      background: rgba(34,197,94,.10);
+      color: #86efac;
+      border: 1px solid rgba(34,197,94,.20);
+    }
+
+    .post-stats {
+      display: flex;
+      gap: 15px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 13px;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: 18px;
+      padding: 30px 15px;
+      line-height: 1.8;
+    }
+
+    /* =========================
+       FORM
+    ========================= */
+
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .form-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .visibility-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .visibility-btn {
+      background: #0c0c0f;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 12px;
+      padding: 10px 13px;
+    }
+
+    .visibility-btn.active {
+      color: white;
+      border-color: var(--primary);
+      background: rgba(139,92,246,.13);
+    }
+
+    /* =========================
+       GROUPS
+    ========================= */
+
+    .group-list {
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .group-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 19px;
+      padding: 16px;
+      cursor: pointer;
+    }
+
+    .group-card:hover {
+      border-color: #41414a;
+    }
+
+    .group-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .group-info {
+      min-width: 0;
+    }
+
+    .group-name {
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    .group-time {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .group-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .mini-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0c0c0f;
+      color: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mini-icon.danger {
+      color: #f87171;
+    }
+
+    .student-note {
+      color: var(--muted);
+      background: rgba(139,92,246,.07);
+      border: 1px solid rgba(139,92,246,.15);
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.7;
+      margin-bottom: 13px;
+    }
+
+    /* =========================
+       ACCOUNT
+    ========================= */
+
+    .profile-card {
+      background:
+        radial-gradient(circle at top left, rgba(139,92,246,.14), transparent 40%),
+        var(--card);
+      border: 1px solid var(--border);
+      border-radius: 23px;
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+
+    .profile-head {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .avatar {
+      width: 62px;
+      height: 62px;
+      border-radius: 20px;
+      background: linear-gradient(135deg,#8b5cf6,#4c1d95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .profile-username {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .profile-sub {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .profile-warning {
+      color: #aaa;
+      font-size: 11px;
+      line-height: 1.7;
+      margin-top: 16px;
+      padding-top: 13px;
+      border-top: 1px solid var(--border);
+    }
+
+    .activity-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 8px;
+    }
+
+    .activity-btn {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: white;
+      border-radius: 17px;
+      min-height: 95px;
+      padding: 10px 7px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .activity-btn:hover {
+      border-color: var(--primary);
+      background: rgba(139,92,246,.08);
+    }
+
+    .activity-icon {
+      font-size: 23px;
+    }
+
+    .activity-panel {
+      margin-top: 13px;
+    }
+
+    .activity-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      padding: 14px;
+      margin-bottom: 9px;
+    }
+
+    .activity-item-title {
+      font-weight: bold;
+      line-height: 1.5;
+    }
+
+    .activity-item-text {
+      color: #aaa;
+      font-size: 12px;
+      line-height: 1.7;
+      margin-top: 5px;
+    }
+
+    .activity-item-meta {
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: 9px;
+    }
+
+    /* =========================
+       BOTTOM NAV
+    ========================= */
+
+    .bottom-nav {
+      position: fixed;
+      z-index: 60;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      height: 72px;
+      background: rgba(10,10,12,.94);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      max-width: 760px;
+      height: 100%;
+      margin: auto;
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+    }
+
+    .nav-btn {
+      background: none;
+      border: 0;
+      color: #777781;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 10px;
+    }
+
+    .nav-btn .nav-icon {
+      font-size: 20px;
+    }
+
+    .nav-btn.active {
+      color: var(--primary2);
+    }
+
+    /* =========================
+       MODALS
+    ========================= */
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0,0,0,.72);
+      backdrop-filter: blur(7px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 760px;
+      max-height: 92vh;
+      overflow-y: auto;
+      background: #101013;
+      border: 1px solid var(--border);
+      border-radius: 27px 27px 0 0;
+      padding: 20px;
+    }
+
+    .modal-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .close-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 13px;
+      background: var(--card2);
+      color: white;
+      border: 1px solid var(--border);
+    }
+
+    .thread-body {
+      color: #ddd;
+      line-height: 1.9;
+      white-space: pre-line;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .thread-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 18px 0;
+      padding: 14px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .action-btn {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: white;
+      border-radius: 12px;
+      padding: 9px 13px;
+    }
+
+    .action-btn.liked {
+      color: #f472b6;
+      border-color: rgba(244,114,182,.3);
+    }
+
+    .action-btn.solved {
+      color: #86efac;
+      border-color: rgba(34,197,94,.25);
+    }
+
+    .replies-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .reply-item {
+      background: #0c0c0f;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+
+    .reply-meta {
+      color: var(--muted);
+      font-size: 10px;
+      margin-bottom: 6px;
+    }
+
+    .reply-text {
+      color: #ddd;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+
+    .reply-form {
+      display: flex;
+      gap: 8px;
+      margin-top: 13px;
+    }
+
+    .reply-form textarea {
+      min-height: 50px;
+      height: 50px;
+      resize: none;
+      flex: 1;
+    }
+
+    .reply-form button {
+      width: 50px;
+      flex-shrink: 0;
+    }
+
+    .members-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .member-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: #0c0c0f;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 10px 12px;
+    }
+
+    .member-name {
+      font-size: 13px;
+    }
+
+    .member-role {
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: 3px;
+    }
+
+    .add-member-box {
+      background: rgba(139,92,246,.06);
+      border: 1px solid rgba(139,92,246,.17);
+      border-radius: 16px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+
+    .add-member-row {
+      display: flex;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .add-member-row input {
+      flex: 1;
+    }
+
+    .group-questions {
+      margin-top: 20px;
+    }
+
+    .notification-item {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 15px;
+      padding: 13px;
+      margin-bottom: 8px;
+    }
+
+    .notification-item.unread {
+      border-color: rgba(139,92,246,.35);
+      background: rgba(139,92,246,.06);
+    }
+
+    .notification-text {
+      line-height: 1.7;
+      font-size: 13px;
+    }
+
+    .notification-time {
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: 6px;
+    }
+
+    @media (min-width: 700px) {
+      .modal {
+        align-items: center;
+        padding: 20px;
+      }
+
+      .modal-box {
+        border-radius: 25px;
+        max-height: 88vh;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .activity-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .activity-btn {
+        min-height: 64px;
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 12px 16px;
+      }
+
+      .specialization-box {
+        min-height: 135px;
+      }
+    }
+
+    #editUsernameBtn { flex-shrink: 0; }
+
+    .profile-head { display:flex; align-items:center; gap:12px; }
+  </style>
+</head>
+
+<body>
+
+  <!-- =====================================
+       AUTH GATE
+  ====================================== -->
+
+  <section id="authGate">
+
+    <div class="auth-box">
+
+      <div class="auth-logo">
+        <div class="logo-circle">ح</div>
+        <h1>حِلقة</h1>
+        <p>مساحة تجمعك بالناس اللي بتتعلم معاك</p>
+      </div>
+
+      <!-- LOGIN -->
+
+      <form id="loginForm" class="auth-form">
+
+        <label class="field-label">اسم المستخدم</label>
+        <input
+          id="loginUsername"
+          type="text"
+          minlength="3"
+          maxlength="24"
+          placeholder="hassan123"
+          autocomplete="username"
+          required
+        >
+        <div class="username-hint">حروف إنجليزية وأرقام فقط — من 3 إلى 24 حرف.</div>
+
+
+        <label class="field-label">كلمة المرور</label>
+        <input
+          id="loginPassword"
+          type="password"
+          placeholder="••••••••"
+          required
+        >
+
+        <div id="loginMessage"></div>
+
+        <button class="primary-btn" type="submit">
+          دخول
+        </button>
+
+        <div class="auth-switch">
+          معندكش حساب؟
+          <button type="button" id="showSignup">
+            إنشاء حساب
+          </button>
+        </div>
+
+      </form>
+
+      <!-- SIGNUP -->
+
+      <form id="signupForm" class="auth-form hidden">
+
+        <label class="field-label">اسم المستخدم</label>
+
+        <input
+          id="signupUsername"
+          type="text"
+          minlength="3"
+          maxlength="24"
+          placeholder="hassan123"
+          autocomplete="username"
+          required
+        >
+
+        <div class="username-hint">
+          من 3 إلى 24 حرف — حروف إنجليزية وأرقام فقط.
+          مثال: hassan123
+        </div>
+
+        <label class="field-label">نوع الحساب</label>
+
+        <select id="signupRole" required>
+          <option value="student">طالب</option>
+          <option value="teacher_doctor">مدرس / دكتور</option>
+        </select>
+
+
+
+        <label class="field-label">كلمة المرور</label>
+
+        <input
+          id="signupPassword"
+          type="password"
+          minlength="6"
+          placeholder="6 أحرف أو أكثر"
+          required
+        >
+
+        <div id="signupMessage"></div>
+
+        <button class="primary-btn" type="submit">
+          إنشاء الحساب
+        </button>
+
+        <div class="auth-switch">
+          عندك حساب؟
+          <button type="button" id="showLogin">
+            تسجيل الدخول
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================
+       APP
+  ====================================== -->
+
+  <div id="appShell" class="hidden">
+
+    <header>
+
+      <div class="header-inner">
+
+        <div class="brand">
+          <div class="brand-mark">ح</div>
+          <div class="brand-name">حِلقة</div>
+        </div>
+
+        <div class="header-actions">
+
+          <button
+            class="icon-btn"
+            id="notificationsBtn"
+            title="الإشعارات"
+          >
+            🔔
+            <span id="notificationBadge" class="badge hidden">0</span>
+          </button>
+
+          <button
+            class="icon-btn"
+            id="headerAccountBtn"
+            title="الحساب"
+          >
+            👤
+          </button>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <main>
+
+      <!-- =================================
+           FEED
+      ================================== -->
+
+      <section id="feedView" class="view active">
+
+        <div class="specialization-box">
+
+          <div class="spec-small">
+            التخصص
+          </div>
+
+          <div
+            class="spec-title"
+            id="siteSpecialization"
+          >
+            ذكاء اصطناعي
+          </div>
+
+          <div class="spec-desc">
+            اسأل، ناقش، واتعلم مع غيرك.
+          </div>
+
+        </div>
+
+        <div class="tabs">
+
+          <button
+            class="tab active"
+            data-tab="recent"
+          >
+            الأحدث
+          </button>
+
+          <button
+            class="tab"
+            data-tab="active"
+          >
+            الأكثر نقاشًا
+          </button>
+
+          <button
+            class="tab"
+            data-tab="unsolved"
+          >
+            بدون حل
+          </button>
+
+        </div>
+
+        <div id="feedList" class="post-list"></div>
+
+      </section>
+
+
+      <!-- =================================
+           NEW POST
+      ================================== -->
+
+      <section id="newPostView" class="view">
+
+        <div class="section-card">
+
+          <div class="section-title">
+            اسأل سؤال جديد
+          </div>
+
+          <form id="postForm" class="form-stack">
+
+            <input
+              id="postTitle"
+              type="text"
+              maxlength="150"
+              placeholder="اكتب عنوان السؤال..."
+              required
+            >
+
+            <textarea
+              id="postBody"
+              placeholder="اشرح سؤالك بالتفصيل..."
+              required
+            ></textarea>
+
+            <div>
+              <div class="field-label" style="margin-bottom:8px;">
+                السؤال هيظهر فين؟
+              </div>
+
+              <div
+                id="visibilityOptions"
+                class="visibility-options"
+              ></div>
+            </div>
+
+            <div id="postMessage"></div>
+
+            <button
+              class="primary-btn"
+              type="submit"
+            >
+              نشر السؤال
+            </button>
+
+          </form>
+
+        </div>
+
+      </section>
+
+
+      <!-- =================================
+           GROUPS
+      ================================== -->
+
+      <section id="groupsView" class="view">
+
+        <div id="staffGroupCreate"></div>
+
+        <div class="section-card">
+
+          <div class="section-title">
+            مجموعات الدراسة
+          </div>
+
+          <div
+            id="groupsList"
+            class="group-list"
+          ></div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =================================
+           ACCOUNT
+      ================================== -->
+
+      <section id="accountView" class="view">
+
+        <div
+          id="profileContainer"
+          class="profile-card"
+        ></div>
+
+        <div class="activity-grid">
+
+          <button
+            class="activity-btn"
+            data-activity="posts"
+          >
+            <span class="activity-icon">❓</span>
+            <span>أسئلتي</span>
+          </button>
+
+          <button
+            class="activity-btn"
+            data-activity="likes"
+          >
+            <span class="activity-icon">❤️</span>
+            <span>الأسئلة التي عملت لها لايك</span>
+          </button>
+
+          <button
+            class="activity-btn"
+            data-activity="replies"
+          >
+            <span class="activity-icon">💬</span>
+            <span>ردودي</span>
+          </button>
+
+        </div>
+
+        <div
+          id="activityPanel"
+          class="activity-panel"
+        ></div>
+
+        <button
+          id="logoutBtn"
+          class="danger-btn"
+          style="width:100%; margin-top:15px;"
+        >
+          تسجيل الخروج
+        </button>
+
+      </section>
+
+    </main>
+
+
+    <!-- =================================
+         BOTTOM NAV
+    ================================== -->
+
+    <nav class="bottom-nav">
+
+      <div class="nav-inner">
+
+        <button
+          class="nav-btn active"
+          data-view="feedView"
+        >
+          <span class="nav-icon">🏠</span>
+          الرئيسية
+        </button>
+
+        <button
+          class="nav-btn"
+          data-view="newPostView"
+        >
+          <span class="nav-icon">➕</span>
+          سؤال
+        </button>
+
+        <button
+          class="nav-btn"
+          data-view="groupsView"
+        >
+          <span class="nav-icon">👥</span>
+          المجموعات
+        </button>
+
+        <button
+          class="nav-btn"
+          data-view="accountView"
+        >
+          <span class="nav-icon">👤</span>
+          حسابي
+        </button>
+
+      </div>
+
+    </nav>
+
+  </div>
+
+
+  <!-- =====================================
+       THREAD MODAL
+  ====================================== -->
+
+  <div
+    id="threadModal"
+    class="modal hidden"
+  >
+
+    <div class="modal-box">
+
+      <div class="modal-top">
+
+        <div
+          id="threadTitle"
+          class="modal-title"
+        ></div>
+
+        <button
+          class="close-btn"
+          data-close="threadModal"
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <div
+        id="threadMeta"
+        class="post-meta"
+      ></div>
+
+      <div
+        id="threadBody"
+        class="thread-body"
+      ></div>
+
+      <div
+        id="threadActions"
+        class="thread-actions"
+      ></div>
+
+      <div class="replies-title">
+        الردود
+      </div>
+
+      <div id="repliesList"></div>
+
+      <form
+        id="replyForm"
+        class="reply-form"
+      >
+
+        <textarea
+          id="replyBody"
+          placeholder="اكتب ردك..."
+          required
+        ></textarea>
+
+        <button
+          class="primary-btn"
+          type="submit"
+        >
+          ➤
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================
+       GROUP MODAL
+  ====================================== -->
+
+  <div
+    id="groupModal"
+    class="modal hidden"
+  >
+
+    <div class="modal-box">
+
+      <div class="modal-top">
+
+        <div
+          id="groupModalTitle"
+          class="modal-title"
+        ></div>
+
+        <button
+          class="close-btn"
+          data-close="groupModal"
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <div
+        id="groupModalMeta"
+        class="post-meta"
+      ></div>
+
+      <div id="groupJoinArea"></div>
+
+      <div class="section-card" style="margin-top:15px;">
+
+        <div class="group-row">
+
+          <div class="section-title" style="margin:0;">
+            الأعضاء
+          </div>
+
+          <button
+            id="toggleAddMember"
+            class="mini-icon hidden"
+            title="إضافة عضو"
+          >
+            ➕
+          </button>
+
+        </div>
+
+        <div
+          id="addMemberArea"
+          class="add-member-box hidden"
+        >
+
+          <div style="font-size:12px;">
+            اكتب Username العضو
+          </div>
+
+          <div class="add-member-row">
+
+            <input
+              id="memberUsername"
+              placeholder="hassan123"
+            >
+
+            <button
+              id="addMemberBtn"
+              class="primary-btn"
+              type="button"
+            >
+              إضافة
+            </button>
+
+          </div>
+
+          <div id="memberMessage"></div>
+
+        </div>
+
+        <div
+          id="membersList"
+          class="members-grid"
+        ></div>
+
+      </div>
+
+      <div class="group-questions">
+
+        <div class="group-row" style="margin-bottom:10px;">
+
+          <div class="section-title" style="margin:0;">
+            أسئلة المجموعة
+          </div>
+
+          <button
+            id="groupQuestionBtn"
+            class="primary-btn"
+            style="padding:9px 12px;"
+            type="button"
+          >
+            + سؤال
+          </button>
+
+        </div>
+
+        <div
+          id="groupQuestionsList"
+          class="post-list"
+        ></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================
+       NOTIFICATIONS MODAL
+  ====================================== -->
+
+  <div
+    id="notificationsModal"
+    class="modal hidden"
+  >
+
+    <div class="modal-box">
+
+      <div class="modal-top">
+
+        <div class="modal-title">
+          الإشعارات
+        </div>
+
+        <button
+          class="close-btn"
+          data-close="notificationsModal"
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <div
+        id="notificationsList"
+      ></div>
+
+    </div>
+
+  </div>
+
+
+  <script>
+    /* =====================================================
+       حِلقة
+       JavaScript
+    ===================================================== */
+
+    const SUPABASE_URL =
+      "https://zgjgbdcqqyexmwplytwt.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_5ehZzifOR00Hf2W0RmYIlw_Ta3XX1y0";
+
+    const sb =
+      supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+
+    /* =====================================================
+       التخصص الثابت
+       غير قابل للتعديل من الموقع
+    ===================================================== */
+
+    const SITE_SPECIALIZATION = "ذكاء اصطناعي";
+
+
+    /* =====================================================
+       STATE
+    ===================================================== */
+
+    let currentUser = null;
+    let currentProfile = null;
+
+    let currentTab = "recent";
+
+    let selectedVisibility = "public";
+
+    let currentThreadId = null;
+
+    let currentGroupId = null;
+
+    let desiredPostGroupId = null;
+
+
+    /* =====================================================
+       HELPERS
+    ===================================================== */
+
+    function escapeHtml(value) {
+
+      if (value === null || value === undefined) {
+        return "";
+      }
+
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+
+    function timeAgo(dateString) {
+
+      const date = new Date(dateString);
+
+      const seconds =
+        Math.floor(
+          (Date.now() - date.getTime()) / 1000
+        );
+
+      if (seconds < 60) {
+        return "منذ لحظات";
+      }
+
+      const minutes =
+        Math.floor(seconds / 60);
+
+      if (minutes < 60) {
+        return `منذ ${minutes} دقيقة`;
+      }
+
+      const hours =
+        Math.floor(minutes / 60);
+
+      if (hours < 24) {
+        return `منذ ${hours} ساعة`;
+      }
+
+      const days =
+        Math.floor(hours / 24);
+
+      if (days < 30) {
+        return `منذ ${days} يوم`;
+      }
+
+      return new Intl.DateTimeFormat(
+        "ar-EG",
+        {
+          dateStyle: "medium"
+        }
+      ).format(date);
+    }
+
+
+    function roleLabel(role) {
+
+      return role === "teacher_doctor"
+        ? "مدرس / دكتور"
+        : "طالب";
+    }
+
+
+    function initials(username) {
+
+      return String(username || "ح")
+        .slice(0, 2)
+        .toUpperCase();
+    }
+
+
+    function showMessage(
+      elementId,
+      text,
+      type = "error"
+    ) {
+
+      const el =
+        document.getElementById(elementId);
+
+      if (!el) return;
+
+      if (!text) {
+        el.innerHTML = "";
+        return;
+      }
+
+      el.innerHTML = `
+        <div class="message ${type}">
+          ${escapeHtml(text)}
+        </div>
+      `;
+    }
+
+
+    function closeModal(id) {
+
+      document
+        .getElementById(id)
+        ?.classList.add("hidden");
+    }
+
+
+    function openModal(id) {
+
+      document
+        .getElementById(id)
+        ?.classList.remove("hidden");
+    }
+
+
+    function switchAuth(type) {
+
+      document
+        .getElementById("loginForm")
+        .classList.toggle(
+          "hidden",
+          type !== "login"
+        );
+
+      document
+        .getElementById("signupForm")
+        .classList.toggle(
+          "hidden",
+          type !== "signup"
+        );
+
+      showMessage("loginMessage", "");
+      showMessage("signupMessage", "");
+    }
+
+
+    /* =====================================================
+       AUTH GATE
+    ===================================================== */
+
+    function showLoggedOut() {
+
+      document
+        .getElementById("authGate")
+        .classList.remove("hidden");
+
+      document
+        .getElementById("appShell")
+        .classList.add("hidden");
+    }
+
+
+    function showLoggedIn() {
+
+      document
+        .getElementById("authGate")
+        .classList.add("hidden");
+
+      document
+        .getElementById("appShell")
+        .classList.remove("hidden");
+
+      document
+        .getElementById("siteSpecialization")
+        .textContent =
+        SITE_SPECIALIZATION;
+    }
+
+
+    /* =====================================================
+       AUTH
+    ===================================================== */
+
+    document
+      .getElementById("showSignup")
+      .addEventListener(
+        "click",
+        () => switchAuth("signup")
+      );
+
+
+    document
+      .getElementById("showLogin")
+      .addEventListener(
+        "click",
+        () => switchAuth("login")
+      );
+
+
+    document
+      .getElementById("loginForm")
+      .addEventListener(
+        "submit",
+        async (e) => {
+
+          e.preventDefault();
+
+          showMessage("loginMessage", "");
+
+          const username = document.getElementById("loginUsername").value.trim().toLowerCase();
+
+          const password = document.getElementById("loginPassword").value;
+
+          if (!/^[a-z0-9]{3,24}$/.test(username)) {
+            showMessage("loginMessage", "اسم المستخدم لازم يكون من 3 إلى 24 حرف، حروف إنجليزية وأرقام فقط.");
+            return;
+          }
+
+          const { data: emailData, error: emailError } = await sb.rpc("get_login_email", {
+            login_username: username
+          });
+
+          if (emailError || !emailData) {
+            showMessage("loginMessage", "اسم المستخدم أو كلمة المرور غير صحيحة.");
+            return;
+          }
+
+          const { data, error } = await sb.auth.signInWithPassword({
+            email: emailData,
+            password
+          });
+
+          if (error) {
+            showMessage("loginMessage", "اسم المستخدم أو كلمة المرور غير صحيحة.");
+            return;
+          }
+
+          if (data.user) {
+
+            await loadUser();
+
+          }
+
+        }
+      );
+
+
+    document
+      .getElementById("signupForm")
+      .addEventListener(
+        "submit",
+        async (e) => {
+
+          e.preventDefault();
+
+          showMessage("signupMessage", "");
+
+          const username =
+            document
+              .getElementById("signupUsername")
+              .value
+              .trim()
+              .toLowerCase();
+
+          const role =
+            document
+              .getElementById("signupRole")
+              .value;
+
+          const password =
+            document
+              .getElementById("signupPassword")
+              .value;
+
+
+          if (!/^[a-z0-9]{3,24}$/.test(username)) {
+
+            showMessage(
+              "signupMessage",
+              "الـ Username لازم يكون من 3 إلى 24 حرف، حروف إنجليزية وأرقام فقط."
+            );
+
+            return;
+          }
+
+
+          if (password.length < 6) {
+
+            showMessage(
+              "signupMessage",
+              "كلمة المرور لازم تكون 6 أحرف على الأقل."
+            );
+
+            return;
+          }
+
+
+          // Supabase يحتاج Email داخلي، لكن المستخدم لا يكتبه ولا يراه.
+          const internalEmail = `${username}@accounts.halqa.local`;
+
+          const {
+            data,
+            error
+          } = await sb.auth.signUp({
+
+            email: internalEmail,
+
+            password,
+
+            options: {
+              data: {
+                username,
+                role
+              }
+            }
+
+          });
+
+
+          if (error) {
+
+            let msg =
+              error.message || "حدث خطأ أثناء إنشاء الحساب.";
+
+            if (
+              msg.toLowerCase().includes("username")
+            ) {
+              msg =
+                "اسم المستخدم ده مستخدم بالفعل أو غير صالح.";
+            }
+
+            showMessage(
+              "signupMessage",
+              msg
+            );
+
+            return;
+          }
+
+
+          if (data.session) {
+
+            await loadUser();
+
+          } else {
+
+            showMessage(
+              "signupMessage",
+              "تم إنشاء الحساب. دلوقتي تقدر تسجل الدخول باسم المستخدم وكلمة المرور.",
+              "success"
+            );
+
+            switchAuth("login");
+          }
+
+        }
+      );
+
+
+    async function loadUser() {
+
+      const {
+        data: sessionData
+      } = await sb.auth.getSession();
+
+      currentUser =
+        sessionData.session?.user || null;
+
+
+      if (!currentUser) {
+
+        currentProfile = null;
+
+        showLoggedOut();
+
+        return;
+      }
+
+
+      const {
+        data: profile,
+        error
+      } = await sb
+        .from("profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .maybeSingle();
+
+
+      if (error || !profile) {
+
+        await sb.auth.signOut();
+
+        showLoggedOut();
+
+        alert(
+          "حصلت مشكلة في بيانات الحساب. تأكد من تنفيذ SQL الجديد بالكامل."
+        );
+
+        return;
+      }
+
+
+      currentProfile = profile;
+
+      showLoggedIn();
+
+      await initializeApp();
+
+    }
+
+
+    sb.auth.onAuthStateChange(
+      async (event, session) => {
+
+        if (
+          event === "SIGNED_OUT" ||
+          !session
+        ) {
+
+          currentUser = null;
+          currentProfile = null;
+
+          showLoggedOut();
+
+          return;
+        }
+
+        if (event === "SIGNED_IN") {
+          await loadUser();
+        }
+
+      }
+    );
+
+
+    /* =====================================================
+       INITIALIZE
+    ===================================================== */
+
+    async function initializeApp() {
+
+      document
+        .getElementById("siteSpecialization")
+        .textContent =
+        SITE_SPECIALIZATION;
+
+      renderProfile();
+
+      await loadFeed();
+
+      await loadGroups();
+
+      await renderPostVisibility();
+
+      await updateNotificationBadge();
+
+      switchView("feedView");
+    }
+
+
+    /* =====================================================
+       NAVIGATION
+    ===================================================== */
+
+    function switchView(viewId) {
+
+      if (!currentUser) return;
+
+
+      document
+        .querySelectorAll(".view")
+        .forEach(view => {
+
+          view.classList.toggle(
+            "active",
+            view.id === viewId
+          );
+
+        });
+
+
+      document
+        .querySelectorAll(".nav-btn")
+        .forEach(btn => {
+
+          btn.classList.toggle(
+            "active",
+            btn.dataset.view === viewId
+          );
+
+        });
+
+
+      if (viewId === "feedView") {
+        loadFeed();
+      }
+
+
+      if (viewId === "groupsView") {
+        loadGroups();
+      }
+
+
+      if (viewId === "newPostView") {
+        renderPostVisibility();
+      }
+
+
+      if (viewId === "accountView") {
+        renderProfile();
+      }
+
+    }
+
+
+    document
+      .querySelectorAll(".nav-btn")
+      .forEach(btn => {
+
+        btn.addEventListener(
+          "click",
+          () => switchView(btn.dataset.view)
+        );
+
+      });
+
+
+    document
+      .getElementById("headerAccountBtn")
+      .addEventListener(
+        "click",
+        () => switchView("accountView")
+      );
+
+
+    /* =====================================================
+       FEED TABS
+    ===================================================== */
+
+    document
+      .querySelectorAll(".tab")
+      .forEach(tab => {
+
+        tab.addEventListener(
+          "click",
+          () => {
+
+            currentTab =
+              tab.dataset.tab;
+
+            document
+              .querySelectorAll(".tab")
+              .forEach(t =>
+                t.classList.remove("active")
+              );
+
+            tab.classList.add("active");
+
+            loadFeed();
+
+          }
+        );
+
+      });
+
+
+    /* =====================================================
+       FEED
+    ===================================================== */
+
+    async function loadFeed() {
+
+      if (!currentUser) return;
+
+
+      let query =
+        sb
+          .from("posts")
+          .select(`
+            *,
+            profiles(username, role),
+            replies(count),
+            likes(count)
+          `)
+          .is("group_id", null);
+
+
+      if (currentTab === "unsolved") {
+
+        query =
+          query.eq("solved", false);
+
+      }
+
+
+      query =
+        query.order(
+          "created_at",
+          {
+            ascending: false
+          }
+        );
+
+
+      const {
+        data,
+        error
+      } = await query;
+
+
+      const container =
+        document.getElementById("feedList");
+
+
+      if (error) {
+
+        container.innerHTML = `
+          <div class="empty">
+            حصل خطأ في تحميل الأسئلة.
+          </div>
+        `;
+
+        return;
+      }
+
+
+      let posts = data || [];
+
+
+      if (currentTab === "active") {
+
+        posts.sort(
+          (a, b) => {
+
+            const aReplies =
+              a.replies?.[0]?.count || 0;
+
+            const bReplies =
+              b.replies?.[0]?.count || 0;
+
+            const aLikes =
+              a.likes?.[0]?.count || 0;
+
+            const bLikes =
+              b.likes?.[0]?.count || 0;
+
+            return (
+              (bReplies + bLikes) -
+              (aReplies + aLikes)
+            );
+
+          }
+        );
+
+      }
+
+
+      if (!posts.length) {
+
+        container.innerHTML = `
+          <div class="empty">
+            مفيش أسئلة هنا لسه.<br>
+            كن أول واحد يبدأ النقاش ✨
+          </div>
+        `;
+
+        return;
+      }
+
+
+      container.innerHTML =
+        posts.map(renderPostCard).join("");
+
+    }
+
+
+    function renderPostCard(post) {
+
+      const replies =
+        post.replies?.[0]?.count || 0;
+
+      const likes =
+        post.likes?.[0]?.count || 0;
+
+      const profile =
+        post.profiles || {};
+
+      const role =
+        roleLabel(profile.role);
+
+
+      return `
+
+        <article
+          class="post-card"
+          onclick="openThread('${post.id}')"
+        >
+
+          <div class="post-top">
+
+            <div style="min-width:0;">
+
+              <div class="post-title">
+                ${escapeHtml(post.title)}
+              </div>
+
+              <div class="post-body-preview">
+                ${escapeHtml(
+                  post.body.length > 180
+                    ? post.body.slice(0,180) + "..."
+                    : post.body
+                )}
+              </div>
+
+            </div>
+
+            ${
+              post.solved
+                ? `
+                  <span class="solved-badge">
+                    ✓ تم الحل
+                  </span>
+                `
+                : ""
+            }
+
+          </div>
+
+
+          <div class="post-meta">
+
+            <span>
+              @${escapeHtml(profile.username || "user")}
+            </span>
+
+            <span>•</span>
+
+            <span class="role-badge">
+              ${role}
+            </span>
+
+            <span>•</span>
+
+            <span>
+              ${timeAgo(post.created_at)}
+            </span>
+
+            <span class="scope-badge">
+              🌍 للكل
+            </span>
+
+          </div>
+
+
+          <div class="post-stats">
+
+            <span>❤️ ${likes}</span>
+
+            <span>💬 ${replies}</span>
+
+          </div>
+
+        </article>
+      `;
+    }
+
+
+    /* =====================================================
+       NEW POST VISIBILITY
+    ===================================================== */
+
+    async function renderPostVisibility() {
+
+      const container =
+        document.getElementById(
+          "visibilityOptions"
+        );
+
+      const {
+        data: memberships,
+        error
+      } = await sb
+        .from("group_members")
+        .select("group_id")
+        .eq(
+          "user_id",
+          currentUser.id
+        );
+
+
+      if (error) {
+
+        container.innerHTML = `
+          <button
+            type="button"
+            class="visibility-btn active"
+            data-visibility="public"
+          >
+            🌍 للكل
+          </button>
+        `;
+
+        selectedVisibility = "public";
+
+        return;
+      }
+
+
+      const ids =
+        (memberships || [])
+          .map(x => x.group_id);
+
+
+      let groups = [];
+
+
+      if (ids.length) {
+
+        const result =
+          await sb
+            .from("study_groups")
+            .select(
+              "id,name"
+            )
+            .in("id", ids)
+            .order(
+              "name",
+              {
+                ascending: true
+              }
+            );
+
+        groups =
+          result.data || [];
+      }
+
+
+      container.innerHTML = `
+
+        <button
+          type="button"
+          class="visibility-btn"
+          data-visibility="public"
+        >
+          🌍 للكل
+        </button>
+
+        ${
+          groups.map(group => `
+
+            <button
+              type="button"
+              class="visibility-btn"
+              data-visibility="${group.id}"
+            >
+              👥 ${escapeHtml(group.name)}
+            </button>
+
+          `).join("")
+        }
+
+      `;
+
+
+      const validDesired =
+        desiredPostGroupId &&
+        groups.some(
+          g => g.id === desiredPostGroupId
+        );
+
+
+      selectedVisibility =
+        validDesired
+          ? desiredPostGroupId
+          : "public";
+
+
+      document
+        .querySelectorAll(
+          ".visibility-btn"
+        )
+        .forEach(btn => {
+
+          btn.classList.toggle(
+            "active",
+            btn.dataset.visibility ===
+            selectedVisibility
+          );
+
+          btn.addEventListener(
+            "click",
+            () => {
+
+              selectedVisibility =
+                btn.dataset.visibility;
+
+              desiredPostGroupId = null;
+
+              document
+                .querySelectorAll(
+                  ".visibility-btn"
+                )
+                .forEach(b =>
+                  b.classList.remove("active")
+                );
+
+              btn.classList.add("active");
+
+            }
+          );
+
+        });
+
+    }
+
+
+    document
+      .getElementById("postForm")
+      .addEventListener(
+        "submit",
+        async (e) => {
+
+          e.preventDefault();
+
+          showMessage(
+            "postMessage",
+            ""
+          );
+
+
+          const title =
+            document
+              .getElementById("postTitle")
+              .value
+              .trim();
+
+          const body =
+            document
+              .getElementById("postBody")
+              .value
+              .trim();
+
+
+          if (!title || !body) {
+
+            showMessage(
+              "postMessage",
+              "اكتب عنوان السؤال وتفاصيله."
+            );
+
+            return;
+          }
+
+
+          const groupId =
+            selectedVisibility === "public"
+              ? null
+              : selectedVisibility;
+
+
+          const {
+            error
+          } = await sb
+            .from("posts")
+            .insert({
+
+              author_id:
+                currentUser.id,
+
+              group_id:
+                groupId,
+
+              title,
+              body
+
+            });
+
+
+          if (error) {
+
+            showMessage(
+              "postMessage",
+              "مش قادر أنشر السؤال. تأكد إنك عضو في المجموعة المختارة."
+            );
+
+            return;
+          }
+
+
+          document
+            .getElementById("postForm")
+            .reset();
+
+
+          selectedVisibility = "public";
+          desiredPostGroupId = null;
+
+
+          showMessage(
+            "postMessage",
+            "تم نشر السؤال بنجاح ❤️",
+            "success"
+          );
+
+
+          await renderPostVisibility();
+
+
+          setTimeout(
+            () => switchView("feedView"),
+            700
+          );
+
+        }
+      );
+
+
+    /* =====================================================
+       THREAD
+    ===================================================== */
+
+    async function openThread(postId) {
+
+      if (!currentUser) return;
+
+      currentThreadId = postId;
+
+
+      const {
+        data: post,
+        error
+      } = await sb
+        .from("posts")
+        .select(`
+          *,
+          profiles(username, role),
+          study_groups(name)
+        `)
+        .eq("id", postId)
+        .maybeSingle();
+
+
+      if (error || !post) {
+
+        alert(
+          "السؤال غير موجود أو مش متاح لحسابك."
+        );
+
+        return;
+      }
+
+
+      const profile =
+        post.profiles || {};
+
+
+      document
+        .getElementById("threadTitle")
+        .textContent =
+        post.title;
+
+
+      document
+        .getElementById("threadMeta")
+        .innerHTML = `
+
+          <span>
+            @${escapeHtml(profile.username || "user")}
+          </span>
+
+          <span>•</span>
+
+          <span class="role-badge">
+            ${roleLabel(profile.role)}
+          </span>
+
+          <span>•</span>
+
+          <span>
+            ${timeAgo(post.created_at)}
+          </span>
+
+          ${
+            post.group_id
+              ? `
+                <span class="scope-badge">
+                  👥 ${escapeHtml(
+                    post.study_groups?.name ||
+                    "مجموعة"
+                  )}
+                </span>
+              `
+              : `
+                <span class="scope-badge">
+                  🌍 للكل
+                </span>
+              `
+          }
+
+        `;
+
+
+      document
+        .getElementById("threadBody")
+        .textContent =
+        post.body;
+
+
+      await renderThreadActions(post);
+
+      await loadReplies(postId);
+
+      openModal("threadModal");
+
+    }
+
+
+    async function renderThreadActions(post) {
+
+      const container =
+        document.getElementById(
+          "threadActions"
+        );
+
+
+      const {
+        data: myLike
+      } = await sb
+        .from("likes")
+        .select("id")
+        .eq(
+          "post_id",
+          post.id
+        )
+        .eq(
+          "user_id",
+          currentUser.id
+        )
+        .maybeSingle();
+
+
+      const {
+        count: likesCount
+      } = await sb
+        .from("likes")
+        .select(
+          "id",
+          {
+            count: "exact",
+            head: true
+          }
+        )
+        .eq(
+          "post_id",
+          post.id
+        );
+
+
+      let html = `
+
+        <button
+          class="action-btn ${myLike ? "liked" : ""}"
+          onclick="toggleLike('${post.id}', ${!!myLike})"
+        >
+          ❤️ ${myLike ? "تم اللايك" : "لايك"}
+          (${likesCount || 0})
+        </button>
+
+      `;
+
+
+      if (post.author_id === currentUser.id) {
+
+        html += `
+
+          <button
+            class="action-btn ${
+              post.solved ? "solved" : ""
+            }"
+            onclick="toggleSolved(
+              '${post.id}',
+              ${post.solved}
+            )"
+          >
+            ${
+              post.solved
+                ? "✓ تم الحل"
+                : "✓ تحديد كتم الحل"
+            }
+          </button>
+
+          <button
+            class="danger-btn"
+            onclick="deletePost('${post.id}')"
+          >
+            🗑 حذف السؤال
+          </button>
+
+        `;
+
+      }
+
+
+      container.innerHTML = html;
+
+    }
+
+
+    async function toggleLike(
+      postId,
+      liked
+    ) {
+
+      if (liked) {
+
+        await sb
+          .from("likes")
+          .delete()
+          .eq(
+            "post_id",
+            postId
+          )
+          .eq(
+            "user_id",
+            currentUser.id
+          );
+
+      } else {
+
+        await sb
+          .from("likes")
+          .insert({
+
+            post_id: postId,
+
+            user_id:
+              currentUser.id
+
+          });
+
+      }
+
+
+      const {
+        data: post
+      } = await sb
+        .from("posts")
+        .select(`
+          *,
+          profiles(username, role),
+          study_groups(name)
+        `)
+        .eq("id", postId)
+        .maybeSingle();
+
+
+      if (post) {
+
+        await renderThreadActions(post);
+
+      }
+
+
+      updateNotificationBadge();
+
+    }
+
+
+    async function toggleSolved(
+      postId,
+      solved
+    ) {
+
+      const {
+        error
+      } = await sb
+        .from("posts")
+        .update({
+          solved: !solved
+        })
+        .eq(
+          "id",
+          postId
+        )
+        .eq(
+          "author_id",
+          currentUser.id
+        );
+
+
+      if (error) {
+
+        alert(
+          "مش قادر أغير حالة السؤال."
+        );
+
+        return;
+      }
+
+
+      openThread(postId);
+
+      loadFeed();
+
+    }
+
+
+    async function deletePost(postId) {
+
+      if (
+        !confirm(
+          "متأكد إنك عايز تحذف السؤال؟"
+        )
+      ) {
+        return;
+      }
+
+
+      const {
+        error
+      } = await sb
+        .from("posts")
+        .delete()
+        .eq(
+          "id",
+          postId
+        )
+        .eq(
+          "author_id",
+          currentUser.id
+        );
+
+
+      if (error) {
+
+        alert(
+          "مش قادر أحذف السؤال."
+        );
+
+        return;
+      }
+
+
+      closeModal("threadModal");
+
+      await loadFeed();
+
+    }
+
+
+    /* =====================================================
+       REPLIES
+    ===================================================== */
+
+    async function loadReplies(postId) {
+
+      const container =
+        document.getElementById(
+          "repliesList"
+        );
+
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("replies")
+        .select(`
+          *,
+          profiles(username, role)
+        `)
+        .eq(
+          "post_id",
+          postId
+        )
+        .order(
+          "created_at",
+          {
+            ascending: true
+          }
+        );
+
+
+      if (error) {
+
+        container.innerHTML = `
+          <div class="empty">
+            حصل خطأ في تحميل الردود.
+          </div>
+        `;
+
+        return;
+      }
+
+
+      if (!data?.length) {
+
+        container.innerHTML = `
+          <div
+            style="
+              color:#777;
+              font-size:12px;
+              padding:10px 0;
+            "
+          >
+            مفيش ردود لسه. كن أول واحد يرد.
+          </div>
+        `;
+
+        return;
+      }
+
+
+      container.innerHTML =
+        data.map(reply => {
+
+          const profile =
+            reply.profiles || {};
+
+          return `
+
+            <div class="reply-item">
+
+              <div class="reply-meta">
+
+                @${escapeHtml(
+                  profile.username || "user"
+                )}
+
+                •
+                ${roleLabel(profile.role)}
+
+                •
+                ${timeAgo(reply.created_at)}
+
+              </div>
+
+              <div class="reply-text">
+                ${escapeHtml(reply.body)}
+              </div>
+
+            </div>
+
+          `;
+
+        }).join("");
+
+    }
+
+
+    document
+      .getElementById("replyForm")
+      .addEventListener(
+        "submit",
+        async (e) => {
+
+          e.preventDefault();
+
+
+          const body =
+            document
+              .getElementById("replyBody")
+              .value
+              .trim();
+
+
+          if (!body || !currentThreadId) {
+            return;
+          }
+
+
+          const {
+            error
+          } = await sb
+            .from("replies")
+            .insert({
+
+              post_id:
+                currentThreadId,
+
+              author_id:
+                currentUser.id,
+
+              body
+
+            });
+
+
+          if (error) {
+
+            alert(
+              "مش قادر أضيف الرد."
+            );
+
+            return;
+          }
+
+
+          document
+            .getElementById("replyBody")
+            .value = "";
+
+
+          await loadReplies(
+            currentThreadId
+          );
+
+          loadFeed();
+
+          updateNotificationBadge();
+
+        }
+      );
+
+
+    /* =====================================================
+       GROUPS
+    ===================================================== */
+
+    async function loadGroups() {
+
+      const container =
+        document.getElementById(
+          "groupsList"
+        );
+
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("study_groups")
+        .select(`
+          id,
+          name,
+          when_text,
+          created_by,
+          created_at,
+          group_members(user_id)
+        `)
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        );
+
+
+      if (error) {
+
+        container.innerHTML = `
+          <div class="empty">
+            حصل خطأ في تحميل المجموعات.
+          </div>
+        `;
+
+        return;
+      }
+
+
+      if (!data?.length) {
+
+        container.innerHTML = `
+          <div class="empty">
+            مفيش مجموعات لسه.
+          </div>
+        `;
+
+      } else {
+
+        container.innerHTML =
+          data.map(group => {
+
+            const count =
+              group.group_members?.length || 0;
+
+            const owner =
+              group.created_by ===
+              currentUser.id;
+
+
+            return `
+
+              <div
+                class="group-card"
+                onclick="openGroup('${group.id}')"
+              >
+
+                <div class="group-row">
+
+                  <div class="group-info">
+
+                    <div class="group-name">
+                      👥 ${escapeHtml(group.name)}
+                    </div>
+
+                    <div class="group-time">
+
+                      ${
+                        group.when_text
+                          ? escapeHtml(
+                              group.when_text
+                            )
+                          : "مجموعة دراسية"
+                      }
+
+                      •
+                      ${count} عضو
+
+                    </div>
+
+                  </div>
+
+
+                  <div class="group-actions">
+
+                    <button
+                      class="mini-icon"
+                      onclick="
+                        event.stopPropagation();
+                        openGroup(
+                          '${group.id}',
+                          'members'
+                        )
+                      "
+                      title="الأعضاء"
+                    >
+                      👥
+                    </button>
+
+                    ${
+                      owner
+                        ? `
+                          <button
+                            class="mini-icon danger"
+                            onclick="
+                              event.stopPropagation();
+                              deleteGroup('${group.id}')
+                            "
+                            title="حذف المجموعة"
+                          >
+                            🗑
+                          </button>
+                        `
+                        : ""
+                    }
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            `;
+
+          }).join("");
+
+      }
+
+
+      renderGroupCreateBox();
+
+    }
+
+
+    function renderGroupCreateBox() {
+
+      const container =
+        document.getElementById(
+          "staffGroupCreate"
+        );
+
+
+      if (
+        currentProfile?.role !==
+        "teacher_doctor"
+      ) {
+
+        container.innerHTML = `
+          <div class="student-note">
+            💡 إنشاء المجموعات وإضافة الأعضاء متاح
+            للمدرسين والدكاترة. تقدر كطالب تنضم
+            لأي مجموعة وتشارك فيها.
+          </div>
+        `;
+
+        return;
+      }
+
+
+      container.innerHTML = `
+
+        <div class="section-card">
+
+          <div class="section-title">
+            إنشاء مجموعة جديدة
+          </div>
+
+          <form
+            id="groupForm"
+            class="form-stack"
+          >
+
+            <input
+              id="groupName"
+              maxlength="80"
+              placeholder="اسم المجموعة"
+              required
+            >
+
+            <input
+              id="groupWhen"
+              maxlength="100"
+              placeholder="مثال: السبت 8 مساءً"
+            >
+
+            <div id="groupMessage"></div>
+
+            <button
+              class="primary-btn"
+              type="submit"
+            >
+              إنشاء المجموعة
+            </button>
+
+          </form>
+
+        </div>
+
+      `;
+
+
+      document
+        .getElementById("groupForm")
+        .addEventListener(
+          "submit",
+          createGroup
+        );
+
+    }
+
+
+    async function createGroup(e) {
+
+      e.preventDefault();
+
+
+      const name =
+        document
+          .getElementById("groupName")
+          .value
+          .trim();
+
+      const whenText =
+        document
+          .getElementById("groupWhen")
+          .value
+          .trim();
+
+
+      const {
+        error
+      } = await sb
+        .from("study_groups")
+        .insert({
+
+          name,
+
+          when_text:
+            whenText || null,
+
+          created_by:
+            currentUser.id
+
+        });
+
+
+      if (error) {
+
+        showMessage(
+          "groupMessage",
+          "مش قادر أنشئ المجموعة."
+        );
+
+        return;
+      }
+
+
+      await loadGroups();
+
+      await renderPostVisibility();
+
+    }
+
+
+    async function openGroup(
+      groupId,
+      focus = "questions"
+    ) {
+
+      currentGroupId = groupId;
+
+
+      const {
+        data: group,
+        error: groupError
+      } = await sb
+        .from("study_groups")
+        .select(`
+          *,
+          group_members(
+            user_id,
+            joined_at,
+            profiles(username, role)
+          )
+        `)
+        .eq(
+          "id",
+          groupId
+        )
+        .maybeSingle();
+
+
+      if (groupError || !group) {
+
+        alert(
+          "المجموعة غير موجودة."
+        );
+
+        return;
+      }
+
+
+      document
+        .getElementById(
+          "groupModalTitle"
+        )
+        .textContent =
+        group.name;
+
+
+      const members =
+        group.group_members || [];
+
+
+      document
+        .getElementById(
+          "groupModalMeta"
+        )
+        .innerHTML = `
+
+          <span>
+            ${members.length} عضو
+          </span>
+
+          ${
+            group.when_text
+              ? `
+                <span>•</span>
+                <span>
+                  ${escapeHtml(
+                    group.when_text
+                  )}
+                </span>
+              `
+              : ""
+          }
+
+        `;
+
+
+      const isOwner =
+        group.created_by ===
+        currentUser.id;
+
+
+      const isMember =
+        members.some(
+          member =>
+            member.user_id ===
+            currentUser.id
+        );
+
+
+      const toggleAdd =
+        document.getElementById(
+          "toggleAddMember"
+        );
+
+
+      toggleAdd.classList.toggle(
+        "hidden",
+        !isOwner
+      );
+
+
+      document
+        .getElementById(
+          "groupJoinArea"
+        )
+        .innerHTML =
+        !isMember
+          ? `
+            <div class="student-note">
+              أنت مش عضو في المجموعة.
+              انضم عشان تشوف أسئلتها وتشارك فيها.
+              <br><br>
+              <button
+                class="primary-btn"
+                onclick="joinGroup('${group.id}')"
+                type="button"
+              >
+                انضم للمجموعة
+              </button>
+            </div>
+          `
+          : `
+            <div
+              class="scope-badge"
+              style="margin-bottom:10px;"
+            >
+              ✓ أنت عضو في المجموعة
+            </div>
+          `;
+
+
+      renderMembers(members);
+
+
+      if (isMember) {
+
+        await loadGroupQuestions(
+          group.id
+        );
+
+      } else {
+
+        document
+          .getElementById(
+            "groupQuestionsList"
+          )
+          .innerHTML = `
+            <div class="empty">
+              انضم للمجموعة لرؤية أسئلتها.
+            </div>
+          `;
+
+      }
+
+
+      document
+        .getElementById(
+          "groupQuestionBtn"
+        )
+        .classList.toggle(
+          "hidden",
+          !isMember
+        );
+
+
+      openModal("groupModal");
+
+
+      if (focus === "members") {
+
+        setTimeout(
+          () => {
+
+            document
+              .getElementById(
+                "membersList"
+              )
+              .scrollIntoView({
+                behavior: "smooth"
+              });
+
+          },
+          100
+        );
+
+      }
+
+    }
+
+
+    function renderMembers(members) {
+
+      const container =
+        document.getElementById(
+          "membersList"
+        );
+
+
+      if (!members.length) {
+
+        container.innerHTML = `
+          <div class="empty">
+            مفيش أعضاء.
+          </div>
+        `;
+
+        return;
+      }
+
+
+      container.innerHTML =
+        members.map(member => {
+
+          const profile =
+            member.profiles || {};
+
+          return `
+
+            <div class="member-item">
+
+              <div>
+
+                <div class="member-name">
+                  @${escapeHtml(
+                    profile.username || "user"
+                  )}
+                </div>
+
+                <div class="member-role">
+                  ${roleLabel(profile.role)}
+                </div>
+
+              </div>
+
+            </div>
+
+          `;
+
+        }).join("");
+
+    }
+
+
+    async function loadGroupQuestions(
+      groupId
+    ) {
+
+      const container =
+        document.getElementById(
+          "groupQuestionsList"
+        );
+
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("posts")
+        .select(`
+          *,
+          profiles(username, role),
+          replies(count),
+          likes(count)
+        `)
+        .eq(
+          "group_id",
+          groupId
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        );
+
+
+      if (error) {
+
+        container.innerHTML = `
+          <div class="empty">
+            حصل خطأ في تحميل أسئلة المجموعة.
+          </div>
+        `;
+
+        return;
+      }
+
+
+      if (!data?.length) {
+
+        container.innerHTML = `
+          <div class="empty">
+            مفيش أسئلة في المجموعة لسه.
+          </div>
+        `;
+
+        return;
+      }
+
+
+      container.innerHTML =
+        data.map(renderPostCard).join("");
+
+    }
+
+
+    async function joinGroup(groupId) {
+
+      const {
+        error
+      } = await sb
+        .from("group_members")
+        .insert({
+
+          group_id: groupId,
+
+          user_id:
+            currentUser.id
+
+        });
+
+
+      if (
+        error &&
+        error.code !== "23505"
+      ) {
+
+        alert(
+          "مش قادر تنضم للمجموعة."
+        );
+
+        return;
+      }
+
+
+      await loadGroups();
+
+      await renderPostVisibility();
+
+      await openGroup(groupId);
+
+      updateNotificationBadge();
+
+    }
+
+
+    document
+      .getElementById(
+        "toggleAddMember"
+      )
+      .addEventListener(
+        "click",
+        () => {
+
+          document
+            .getElementById(
+              "addMemberArea"
+            )
+            .classList.toggle("hidden");
+
+        }
+      );
+
+
+    document
+      .getElementById(
+        "addMemberBtn"
+      )
+      .addEventListener(
+        "click",
+        addMember
+      );
+
+
+    async function addMember() {
+
+      if (!currentGroupId) return;
+
+
+      const username =
+        document
+          .getElementById(
+            "memberUsername"
+          )
+          .value
+          .trim()
+          .toLowerCase();
+
+
+      if (!/^[a-z0-9]{3,24}$/.test(username)) {
+
+        showMessage(
+          "memberMessage",
+          "اكتب Username صحيح."
+        );
+
+        return;
+      }
+
+
+      const {
+        data: profile,
+        error: profileError
+      } = await sb
+        .from("profiles")
+        .select("id,username")
+        .eq(
+          "username",
+          username
+        )
+        .maybeSingle();
+
+
+      if (profileError || !profile) {
+
+        showMessage(
+          "memberMessage",
+          "الـ Username ده مش موجود."
+        );
+
+        return;
+      }
+
+
+      const {
+        error
+      } = await sb
+        .from("group_members")
+        .insert({
+
+          group_id:
+            currentGroupId,
+
+          user_id:
+            profile.id
+
+        });
+
+
+      if (error) {
+
+        if (error.code === "23505") {
+
+          showMessage(
+            "memberMessage",
+            "العضو ده موجود بالفعل في المجموعة."
+          );
+
+        } else {
+
+          showMessage(
+            "memberMessage",
+            "مش قادر أضيف العضو. لازم تكون صاحب المجموعة."
+          );
+
+        }
+
+        return;
+      }
+
+
+      document
+        .getElementById(
+          "memberUsername"
+        )
+        .value = "";
+
+
+      showMessage(
+        "memberMessage",
+        "تمت إضافة العضو بنجاح.",
+        "success"
+      );
+
+
+      await openGroup(
+        currentGroupId,
+        "members"
+      );
+
+      updateNotificationBadge();
+
+    }
+
+
+    async function deleteGroup(groupId) {
+
+      if (
+        !confirm(
+          "متأكد إنك عايز تحذف المجموعة؟\nكل أسئلة المجموعة وأعضائها هيتحذفوا."
+        )
+      ) {
+        return;
+      }
+
+
+      const {
+        error
+      } = await sb
+        .from("study_groups")
+        .delete()
+        .eq(
+          "id",
+          groupId
+        )
+        .eq(
+          "created_by",
+          currentUser.id
+        );
+
+
+      if (error) {
+
+        alert(
+          "مش قادر أحذف المجموعة."
+        );
+
+        return;
+      }
+
+
+      closeModal("groupModal");
+
+      await loadGroups();
+
+      await renderPostVisibility();
+
+    }
+
+
+    document
+      .getElementById(
+        "groupQuestionBtn"
+      )
+      .addEventListener(
+        "click",
+        () => {
+
+          desiredPostGroupId =
+            currentGroupId;
+
+          closeModal("groupModal");
+
+          switchView("newPostView");
+
+        }
+      );
+
+
+    /* =====================================================
+       ACCOUNT
+    ===================================================== */
+
+    function renderProfile() {
+      if (!currentProfile) return;
+      const username = currentProfile.username;
+
+      document.getElementById("profileContainer").innerHTML = `
+        <div class="profile-head">
+          <div class="avatar">${escapeHtml(initials(username))}</div>
+          <div style="flex:1; min-width:0;">
+            <div class="profile-username">@${escapeHtml(username)}</div>
+            <div class="profile-sub">${roleLabel(currentProfile.role)}</div>
+          </div>
+          <button class="mini-icon" id="editUsernameBtn" type="button" title="تعديل اسم المستخدم">✏️</button>
+        </div>
+
+        <div id="usernameEditArea" class="add-member-box hidden" style="margin-top:15px;">
+          <div style="font-size:12px; margin-bottom:8px;">اسم المستخدم الجديد</div>
+          <div class="add-member-row">
+            <input id="newUsername" type="text" minlength="3" maxlength="24" value="${escapeHtml(username)}" autocomplete="username">
+            <button id="saveUsernameBtn" class="primary-btn" type="button">حفظ</button>
+          </div>
+          <div id="usernameMessage"></div>
+        </div>
+      `;
+
+      document.getElementById("editUsernameBtn")?.addEventListener("click", () => {
+        const area = document.getElementById("usernameEditArea");
+        area?.classList.toggle("hidden");
+        document.getElementById("newUsername")?.focus();
+      });
+
+      document.getElementById("saveUsernameBtn")?.addEventListener("click", saveUsername);
+    }
+
+    async function saveUsername() {
+      const input = document.getElementById("newUsername");
+      const newUsername = input?.value.trim().toLowerCase();
+      showMessage("usernameMessage", "");
+
+      if (!/^[a-z0-9]{3,24}$/.test(newUsername || "")) {
+        showMessage("usernameMessage", "اسم المستخدم لازم يكون من 3 إلى 24 حرف، حروف إنجليزية وأرقام فقط.");
+        return;
+      }
+
+      if (newUsername === currentProfile.username) {
+        showMessage("usernameMessage", "اسم المستخدم لم يتغير.", "success");
+        return;
+      }
+
+      const button = document.getElementById("saveUsernameBtn");
+      if (button) { button.disabled = true; button.textContent = "جاري الحفظ..."; }
+
+      const { data, error } = await sb.rpc("change_my_username", { new_username: newUsername });
+
+      if (button) { button.disabled = false; button.textContent = "حفظ"; }
+
+      if (error) {
+        const message = String(error.message || "");
+        showMessage("usernameMessage", message.toLowerCase().includes("taken") ? "اسم المستخدم ده مستخدم بالفعل." : message || "مش قادر أغير اسم المستخدم.");
+        return;
+      }
+
+      if (data) currentProfile = Array.isArray(data) ? data[0] : data;
+      else currentProfile.username = newUsername;
+
+      renderProfile();
+      showMessage("usernameMessage", "تم تغيير اسم المستخدم بنجاح.", "success");
+    }
+
+    document
+      .querySelectorAll(
+        ".activity-btn"
+      )
+      .forEach(btn => {
+
+        btn.addEventListener(
+          "click",
+          () => {
+
+            loadActivity(
+              btn.dataset.activity
+            );
+
+          }
+        );
+
+      });
+
+
+    async function loadActivity(type) {
+
+      const container =
+        document.getElementById(
+          "activityPanel"
+        );
+
+
+      container.innerHTML = `
+        <div class="empty">
+          جاري التحميل...
+        </div>
+      `;
+
+
+      if (type === "posts") {
+
+        await loadMyPosts(container);
+
+      }
+
+
+      if (type === "likes") {
+
+        await loadMyLikes(container);
+
+      }
+
+
+      if (type === "replies") {
+
+        await loadMyReplies(container);
+
+      }
+
+    }
+
+
+    async function loadMyPosts(
+      container
+    ) {
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("posts")
+        .select(`
+          id,
+          title,
+          body,
+          group_id,
+          solved,
+          created_at,
+          study_groups(name)
+        `)
+        .eq(
+          "author_id",
+          currentUser.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        );
+
+
+      if (error || !data?.length) {
+
+        container.innerHTML = `
+          <div class="empty">
+            لسه معندكش أسئلة.
+          </div>
+        `;
+
+        return;
+      }
+
+
+      container.innerHTML =
+        data.map(post => `
+
+          <div
+            class="activity-item"
+            onclick="openThread('${post.id}')"
+            style="cursor:pointer;"
+          >
+
+            <div class="activity-item-title">
+              ${escapeHtml(post.title)}
+            </div>
+
+            <div class="activity-item-text">
+              ${
+                post.group_id
+                  ? "👥 " +
+                    escapeHtml(
+                      post.study_groups?.name ||
+                      "مجموعة"
+                    )
+                  : "🌍 للكل"
+              }
+
+              ${
+                post.solved
+                  ? " • ✓ تم الحل"
+                  : ""
+              }
+            </div>
+
+            <div class="activity-item-meta">
+              ${timeAgo(post.created_at)}
+            </div>
+
+          </div>
+
+        `).join("");
+
+    }
+
+
+    async function loadMyLikes(
+      container
+    ) {
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("likes")
+        .select(`
+          created_at,
+          posts(
+            id,
+            title,
+            group_id,
+            study_groups(name)
+          )
+        `)
+        .eq(
+          "user_id",
+          currentUser.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        );
+
+
+      if (
+        error ||
+        !data?.length
+      ) {
+
+        container.innerHTML = `
+          <div class="empty">
+            مفيش أسئلة عملتلها لايك لسه.
+          </div>
+        `;
+
+        return;
+      }
+
+
+      container.innerHTML =
+        data
+          .filter(x => x.posts)
+          .map(item => `
+
+            <div
+              class="activity-item"
+              onclick="openThread('${item.posts.id}')"
+              style="cursor:pointer;"
+            >
+
+              <div class="activity-item-title">
+                ${escapeHtml(
+                  item.posts.title
+                )}
+              </div>
+
+              <div class="activity-item-text">
+                ${
+                  item.posts.group_id
+                    ? "👥 " +
+                      escapeHtml(
+                        item.posts.study_groups?.name ||
+                        "مجموعة"
+                      )
+                    : "🌍 للكل"
+                }
+              </div>
+
+              <div class="activity-item-meta">
+                عملت لايك ${timeAgo(item.created_at)}
+              </div>
+
+            </div>
+
+          `)
+          .join("");
+
+    }
+
+
+    async function loadMyReplies(
+      container
+    ) {
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("replies")
+        .select(`
+          id,
+          body,
+          post_id,
+          created_at,
+          posts(
+            id,
+            title,
+            group_id,
+            study_groups(name)
+          )
+        `)
+        .eq(
+          "author_id",
+          currentUser.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        );
+
+
+      if (
+        error ||
+        !data?.length
+      ) {
+
+        container.innerHTML = `
+          <div class="empty">
+            مفيش ردود كتبتها لسه.
+          </div>
+        `;
+
+        return;
+      }
+
+
+      container.innerHTML =
+        data
+          .filter(x => x.posts)
+          .map(item => `
+
+            <div
+              class="activity-item"
+              onclick="openThread('${item.post_id}')"
+              style="cursor:pointer;"
+            >
+
+              <div class="activity-item-title">
+                ردي على:
+                ${escapeHtml(
+                  item.posts.title
+                )}
+              </div>
+
+              <div class="activity-item-text">
+                ${escapeHtml(
+                  item.body
+                )}
+              </div>
+
+              <div class="activity-item-meta">
+                ${timeAgo(item.created_at)}
+              </div>
+
+            </div>
+
+          `)
+          .join("");
+
+    }
+
+
+    /* =====================================================
+       NOTIFICATIONS
+    ===================================================== */
+
+    document
+      .getElementById(
+        "notificationsBtn"
+      )
+      .addEventListener(
+        "click",
+        async () => {
+
+          await loadNotifications();
+
+          openModal(
+            "notificationsModal"
+          );
+
+        }
+      );
+
+
+    async function updateNotificationBadge() {
+
+      if (!currentUser) return;
+
+
+      const {
+        count
+      } = await sb
+        .from("notifications")
+        .select(
+          "id",
+          {
+            count: "exact",
+            head: true
+          }
+        )
+        .eq(
+          "user_id",
+          currentUser.id
+        )
+        .eq(
+          "read",
+          false
+        );
+
+
+      const badge =
+        document.getElementById(
+          "notificationBadge"
+        );
+
+
+      if (!count) {
+
+        badge.classList.add("hidden");
+
+      } else {
+
+        badge.classList.remove("hidden");
+
+        badge.textContent =
+          count > 99
+            ? "99+"
+            : count;
+
+      }
+
+    }
+
+
+    async function loadNotifications() {
+
+      const container =
+        document.getElementById(
+          "notificationsList"
+        );
+
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("notifications")
+        .select(`
+          id,
+          text,
+          read,
+          created_at,
+          type,
+          post_id
+        `)
+        .eq(
+          "user_id",
+          currentUser.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        )
+        .limit(50);
+
+
+      if (
+        error ||
+        !data?.length
+      ) {
+
+        container.innerHTML = `
+          <div class="empty">
+            مفيش إشعارات لسه 🔕
+          </div>
+        `;
+
+        return;
+      }
+
+
+      container.innerHTML =
+        data.map(n => `
+
+          <div
+            class="notification-item ${
+              n.read ? "" : "unread"
+            }"
+            ${
+              n.post_id
+                ? `onclick="openNotificationPost('${n.post_id}')"`
+                : ""
+            }
+            style="${
+              n.post_id
+                ? "cursor:pointer;"
+                : ""
+            }"
+          >
+
+            <div class="notification-text">
+              ${escapeHtml(n.text)}
+            </div>
+
+            <div class="notification-time">
+              ${timeAgo(n.created_at)}
+            </div>
+
+          </div>
+
+        `).join("");
+
+
+      await sb
+        .from("notifications")
+        .update({
+          read: true
+        })
+        .eq(
+          "user_id",
+          currentUser.id
+        )
+        .eq(
+          "read",
+          false
+        );
+
+
+      updateNotificationBadge();
+
+    }
+
+
+    async function openNotificationPost(
+      postId
+    ) {
+
+      closeModal(
+        "notificationsModal"
+      );
+
+      await openThread(postId);
+
+    }
+
+
+    /* =====================================================
+       LOGOUT
+    ===================================================== */
+
+    document
+      .getElementById("logoutBtn")
+      .addEventListener(
+        "click",
+        async () => {
+
+          await sb.auth.signOut();
+
+        }
+      );
+
+
+    /* =====================================================
+       MODAL CLOSE
+    ===================================================== */
+
+    document
+      .querySelectorAll(
+        "[data-close]"
+      )
+      .forEach(btn => {
+
+        btn.addEventListener(
+          "click",
+          () => {
+
+            closeModal(
+              btn.dataset.close
+            );
+
+          }
+        );
+
+      });
+
+
+    document
+      .querySelectorAll(".modal")
+      .forEach(modal => {
+
+        modal.addEventListener(
+          "click",
+          e => {
+
+            if (
+              e.target === modal
+            ) {
+
+              modal.classList.add(
+                "hidden"
+              );
+
+            }
+
+          }
+        );
+
+      });
+
+
+    document.addEventListener(
+      "keydown",
+      e => {
+
+        if (e.key === "Escape") {
+
+          document
+            .querySelectorAll(
+              ".modal"
+            )
+            .forEach(modal =>
+              modal.classList.add(
+                "hidden"
+              )
+            );
+
+        }
+
+      }
+    );
+
+
+    /* =====================================================
+       START
+    ===================================================== */
+
+    (async function start() {
+
+      const {
+        data
+      } = await sb.auth.getSession();
+
+      if (data.session?.user) {
+
+        await loadUser();
+
+      } else {
+
+        showLoggedOut();
+
+      }
+
+    })();
+
+  </script>
+
+</body>
+</html>
