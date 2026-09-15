@@ -8,6 +8,8 @@
 
   <meta name="theme-color" content="#09090b">
 
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://zgjgbdcqqyexmwplytwt.supabase.co" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -1924,10 +1926,10 @@
             return;
           }
 
+          // onAuthStateChange سيكمل تحميل المستخدم تلقائيًا بعد تسجيل الدخول.
+          // عدم استدعاء loadUser هنا يمنع التهيئة المزدوجة والرجوع للصفحة الرئيسية.
           if (data.user) {
-
-            await loadUser();
-
+            showMessage("loginMessage", "تم تسجيل الدخول بنجاح.", "success");
           }
 
         }
@@ -2029,7 +2031,7 @@
 
           if (data.session) {
 
-            await loadUser();
+            await loadUser(data.user);
 
           } else {
 
@@ -2046,14 +2048,14 @@
       );
 
 
-    async function loadUser() {
+    async function loadUser(sessionUser = null) {
 
-      const {
-        data: sessionData
-      } = await sb.auth.getSession();
-
-      currentUser =
-        sessionData.session?.user || null;
+      if (sessionUser) {
+        currentUser = sessionUser;
+      } else {
+        const { data: sessionData } = await sb.auth.getSession();
+        currentUser = sessionData.session?.user || null;
+      }
 
 
       if (!currentUser) {
@@ -2099,6 +2101,8 @@
     }
 
 
+    let authInitializing = true;
+
     sb.auth.onAuthStateChange(
       async (event, session) => {
 
@@ -2115,8 +2119,8 @@
           return;
         }
 
-        if (event === "SIGNED_IN") {
-          await loadUser();
+        if (event === "SIGNED_IN" && !authInitializing && session?.user) {
+          await loadUser(session.user);
         }
 
       }
@@ -2129,30 +2133,21 @@
 
     async function initializeApp() {
 
-      document
-        .getElementById("siteSpecialization")
-        .textContent =
-        SITE_SPECIALIZATION;
-
+      document.getElementById("siteSpecialization").textContent = SITE_SPECIALIZATION;
       renderProfile();
 
-      await loadFeed();
+      // افتح الواجهة فورًا. البيانات الثقيلة تتحمل في الخلفية حسب الحاجة.
+      switchView("feedView", { silent: true });
 
-      await loadGroups();
-
-      await renderPostVisibility();
-
-      await updateNotificationBadge();
-
-      switchView("feedView");
+      // الإشعارات ليست ضرورية لفتح الموقع، لذلك نحملها في الخلفية.
+      updateNotificationBadge();
     }
-
 
     /* =====================================================
        NAVIGATION
     ===================================================== */
 
-    function switchView(viewId) {
+    function switchView(viewId, options = {}) {
 
       if (!currentUser) return;
 
@@ -2181,15 +2176,13 @@
         });
 
 
-      if (viewId === "feedView") {
+      if (viewId === "feedView" && !options.silent) {
         loadFeed();
       }
-
 
       if (viewId === "groupsView") {
         loadGroups();
       }
-
 
       if (viewId === "newPostView") {
         renderPostVisibility();
@@ -2258,9 +2251,14 @@
        FEED
     ===================================================== */
 
+    let feedLoading = false;
+    let groupsLoading = false;
+    let visibilityLoading = false;
+
     async function loadFeed() {
 
-      if (!currentUser) return;
+      if (!currentUser || feedLoading) return;
+      feedLoading = true;
 
 
       let query =
@@ -2310,6 +2308,7 @@
           </div>
         `;
 
+        feedLoading = false;
         return;
       }
 
@@ -2354,6 +2353,7 @@
           </div>
         `;
 
+        feedLoading = false;
         return;
       }
 
@@ -2361,6 +2361,7 @@
       container.innerHTML =
         posts.map(renderPostCard).join("");
 
+      feedLoading = false;
     }
 
 
@@ -2492,6 +2493,7 @@
 
         selectedVisibility = "public";
 
+        visibilityLoading = false;
         return;
       }
 
@@ -2601,6 +2603,7 @@
 
         });
 
+      visibilityLoading = false;
     }
 
 
@@ -2638,7 +2641,8 @@
               "اكتب عنوان السؤال وتفاصيله."
             );
 
-            return;
+            visibilityLoading = false;
+        return;
           }
 
 
@@ -2673,7 +2677,8 @@
               "مش قادر أنشر السؤال. تأكد إنك عضو في المجموعة المختارة."
             );
 
-            return;
+            visibilityLoading = false;
+        return;
           }
 
 
@@ -3209,6 +3214,9 @@
 
     async function loadGroups() {
 
+      if (!currentUser || groupsLoading) return;
+      groupsLoading = true;
+
       const container =
         document.getElementById(
           "groupsList"
@@ -3244,6 +3252,7 @@
           </div>
         `;
 
+        groupsLoading = false;
         return;
       }
 
@@ -3350,6 +3359,7 @@
 
       renderGroupCreateBox();
 
+      groupsLoading = false;
     }
 
 
@@ -4700,13 +4710,16 @@
 
       if (data.session?.user) {
 
-        await loadUser();
+        await loadUser(data.session.user);
 
       } else {
 
         showLoggedOut();
 
       }
+
+      // بعد فحص الجلسة الأولى، الأحداث اللاحقة فقط هي التي تعيد التحميل.
+      authInitializing = false;
 
     })();
 
